@@ -1,39 +1,43 @@
 <script>
-    // Import BlogPost component
-    import blogPost from './subcomponents/BlogPost.vue'
-	import axios from 'axios'
-    export default {
-        data() {
-            return {
-                posts: [] // array of post objects
-            }  
-        },
-        computed: {
-            baseUrl() {
-                if (window.location.hostname=='localhost')
-                    return 'http://localhost:3000' 
-                else {
-                    const codespace_host = window.location.hostname.replace('5173', '3000')
-                    return `https://${codespace_host}`;
-                }
-            }
-        },
-        created() { // created is a hook that executes as soon as Vue instance is created
-            axios.get(`${this.baseUrl}/posts`)
-            .then(response => {
-                // this gets the data, which is an array
-                this.posts = response.data
-                console.log(response.data)
-            })
-            .catch(error => {
-                this.posts = [{ entry: 'There was an error: ' + error.message }]
-            })
-        }
+import blogPost from './subcomponents/BlogPost.vue'
+import axios from 'axios'
+
+export default {
+  components: { 'blog-post': blogPost },
+  data() {
+    return { posts: [] }
+  },
+  computed: {
+    baseUrl() {
+      if (window.location.hostname === 'localhost') return 'http://localhost:3000'
+      const codespace_host = window.location.hostname.replace('5173', '3000')
+      return `https://${codespace_host}`
     }
+  },
+  created() {
+    axios.get(`${this.baseUrl}/posts`)
+      .then(res => { this.posts = res.data })
+      .catch(err => { this.posts = [{ subject: 'Error', entry: 'There was an error: ' + err.message, mood: 'sad', id: -1 }] })
+  }
+}
 </script>
 
 <template>
-   <!-- TODO: make use of the 'blog-post' component to display the blog posts -->
+  <div class="container py-4">
+    <h2 class="mb-4">Blog Posts</h2>
 
+    <div v-if="posts && posts.length">
+      <blog-post
+        v-for="post in posts"
+        :key="post.id ?? post.subject ?? JSON.stringify(post)"
+        :subject="post.subject"
+        :entry="post.entry"
+        :mood="post.mood"
+      />
+    </div>
+
+    <div v-else>
+      <p>No posts available.</p>
+    </div>
+  </div>
 </template>
-
